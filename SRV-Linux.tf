@@ -1,5 +1,5 @@
 module "VMs" {
-  source = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-linux_virtual_machine?ref=v3.0.1"
+  source = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-linux_virtual_machine?ref=v3.0.2"
   for_each = var.cluster_members
 
   env                                     = var.env
@@ -29,6 +29,8 @@ module "VMs" {
   dependancyAgent                         = var.dependancyAgent
   shutdownConfig                          = var.shutdownConfig
   tags                                    = var.tags
+  patch_assessment_mode    = var.cluster_patch_assessment_mode
+  patch_mode               = var.cluster_patch_mode
 }
 
 resource "azurerm_network_interface_backend_address_pool_association" "LB_VMs" {
