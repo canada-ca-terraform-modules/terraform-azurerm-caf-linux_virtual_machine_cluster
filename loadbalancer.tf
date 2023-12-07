@@ -79,7 +79,7 @@ resource "azurerm_lb_rule" "loadbalancer-lbr" {
   backend_port                   = each.value.backend_port
   frontend_ip_configuration_name = "${local.name}-lbfe"
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.loadbalancer-lbbp[0].id]
-  probe_id                       = azurerm_lb_probe.loadbalancer-lbhp["${each.value.probe_name}"].id
+  probe_id                       = azurerm_lb_probe.loadbalancer-lbhp[each.value.probe_name].id
   load_distribution              = each.value.load_distribution
   enable_floating_ip             = each.value.enable_floating_ip
   idle_timeout_in_minutes        = try(each.value.idle_timeout_in_minutes, 4)
