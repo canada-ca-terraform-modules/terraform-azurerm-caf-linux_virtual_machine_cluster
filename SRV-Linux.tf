@@ -1,5 +1,5 @@
 module "VMs" {
-  source = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-linux_virtual_machine?ref=v3.0.3"
+  source = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-linux_virtual_machine?ref=v3.0.4"
   for_each = var.cluster_members
 
   env                                     = var.env
