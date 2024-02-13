@@ -28,6 +28,7 @@ module "VMs" {
   encryptDisks                            = var.encryptDisks
   dependancyAgent                         = var.dependancyAgent
   shutdownConfig                          = var.shutdownConfig
+  use_nic_nsg                             = var.use_nic_nsg
   tags                                    = var.tags
   patch_assessment_mode    = var.cluster_patch_assessment_mode
   patch_mode               = var.cluster_patch_mode

@@ -27,6 +27,13 @@ variable "subnet" {
   description = "subnet object to which the VM NIC will connect to"
   type        = any
 }
+
+variable "use_nic_nsg" {
+  description = "Should an NSG be created for the VM nic"
+  type = bool
+  default = true
+}
+
 # variable "nic_ip_configuration_1" {
 #   description = "Defines how a private IP address is assigned. Options are Static or Dynamic. In case of Static also specifiy the desired privat IP address. See variable.tf file for example"
 #   type = object({
