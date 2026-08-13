@@ -41,12 +41,15 @@ jobs:
           if [ -n "$(tail -c1 README.md)" ]; then
             printf '\n' >> README.md
           fi
-          if git diff --quiet -- README.md; then
-            echo "No documentation changes to commit."
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md
+          # Compare the STAGED diff, not the working-tree diff - .gitattributes'
+          # `eol=lf` normalization can make a working-tree-vs-index diff look
+          # non-empty even when `git add` ends up staging no real change.
+          if git diff --cached --quiet -- README.md; then
+            echo "No documentation changes to commit."
+            exit 0
+          fi
           git commit -m "terraform-docs: automated action"
           git push
