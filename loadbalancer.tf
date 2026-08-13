@@ -89,7 +89,7 @@ resource "azurerm_lb_rule" "loadbalancer-lbr" {
   probe_id                       = azurerm_lb_probe.loadbalancer-lbhp[each.value.probe_name].id
   load_distribution              = each.value.load_distribution
   # azurerm v5 rename (caller-facing tfvars keys enable_floating_ip/enable_tcp_reset kept unchanged)
-  floating_ip_enabled     = each.value.enable_floating_ip
-  tcp_reset_enabled       = each.value.enable_tcp_reset
+  floating_ip_enabled     = try(each.value.enable_floating_ip, null)
+  tcp_reset_enabled       = try(each.value.enable_tcp_reset, null)
   idle_timeout_in_minutes = try(each.value.idle_timeout_in_minutes, 4)
 }

@@ -10,7 +10,7 @@ linux_virtual_machine_clusters = {
     resource_group_key = "Project"
     subnet_key         = "app"
     admin_username     = "adminuser"
-    admin_password     = "ChangeMe123!"
+    # admin_password: sensitive - supply via TF_VAR_linux_virtual_machine_clusters or a secrets store
     vm_size            = "Standard_D2s_v5"
 
     cluster_members = {

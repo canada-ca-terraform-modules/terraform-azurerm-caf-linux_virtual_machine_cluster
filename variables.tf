@@ -102,6 +102,7 @@ variable "admin_password" {
   description = "Password of the VM admin account"
   type        = string
   default     = null
+  sensitive   = true
 }
 variable "vm_size" {
   description = "Specifies the size of the Virtual Machine. Eg: Standard_F4"
