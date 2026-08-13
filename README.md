@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform Basic Linux Virtual Machine HA
 
 ## Introduction
@@ -26,23 +25,33 @@ Optional (depending on options configured):
 ## Usage Example
 
 ```hcl
-module "linux_VMs_ha" {
-  source   = "./modules/terraform-azurerm-caf-linux_virtual_machine_ha"
-  for_each = local.deployListLinuxHA
+module "linux_VMs_cluster" {
+  source   = "./modules/terraform-azurerm-caf-linux_virtual_machine_cluster"
+  for_each = local.deployListLinuxCluster
 
   env               = var.env
   serverType        = each.value.serverType
   userDefinedString = each.value.userDefinedString
   resource_group    = local.resource_groups_L2[each.value.resource_group]
   subnet            = local.subnets[each.value.subnet]
-  nic_ip_configuration_1 = {
-    private_ip_address            = [lookup(each.value, "private_ip_address_host_1", "Dynamic") == "Dynamic" ? null : each.value.private_ip_address_host_1] # Test if private ip host is provided. If yes assign value. If no set to null
-    private_ip_address_allocation = [lookup(each.value, "private_ip_address_host_1", "Dynamic") == "Dynamic" ? "Dynamic" : "Static"]                        # Test if private ip host is provided. If yes assign Static. If no set to Dynamic
+
+  # One entry per VM in the cluster - each member gets its own NIC IP configuration
+  # and may optionally override its own auto-generated resource names (Pattern 12).
+  cluster_members = {
+    node1 = {
+      nic_ip_configuration = {
+        private_ip_address            = [lookup(each.value, "private_ip_address_node1", "Dynamic") == "Dynamic" ? null : each.value.private_ip_address_node1]
+        private_ip_address_allocation = [lookup(each.value, "private_ip_address_node1", "Dynamic") == "Dynamic" ? "Dynamic" : "Static"]
+      }
+    }
+    node2 = {
+      nic_ip_configuration = {
+        private_ip_address            = [lookup(each.value, "private_ip_address_node2", "Dynamic") == "Dynamic" ? null : each.value.private_ip_address_node2]
+        private_ip_address_allocation = [lookup(each.value, "private_ip_address_node2", "Dynamic") == "Dynamic" ? "Dynamic" : "Static"]
+      }
+    }
   }
-  nic_ip_configuration_2 = {
-    private_ip_address            = [lookup(each.value, "private_ip_address_host_2", "Dynamic") == "Dynamic" ? null : each.value.private_ip_address_host_2] # Test if private ip host is provided. If yes assign value. If no set to null
-    private_ip_address_allocation = [lookup(each.value, "private_ip_address_host_2", "Dynamic") == "Dynamic" ? "Dynamic" : "Static"]                        # Test if private ip host is provided. If yes assign Static. If no set to Dynamic
-  }
+
   public_ip               = lookup(each.value, "public_ip", false)
   priority                = lookup(each.value, "priority", "Regular")
   license_type            = lookup(each.value, "license_type", null)
@@ -52,6 +61,7 @@ module "linux_VMs_ha" {
   storage_image_reference = lookup(each.value, "storage_image_reference", local.linux_storage_image_reference_ha)
   storage_os_disk         = lookup(each.value, "storage_os_disk", null)
   os_managed_disk_type    = lookup(each.value, "os_managed_disk_type", null)
+  data_managed_disk_type  = lookup(each.value, "data_managed_disk_type", null)
   plan                    = lookup(each.value, "plan", null)
   custom_data             = lookup(each.value, "custom_data", false) != false ? base64encode(file(each.value.custom_data)) : null
   ultra_ssd_enabled       = lookup(each.value, "ultra_ssd_enabled", false)
@@ -63,6 +73,7 @@ module "linux_VMs_ha" {
   } : null
   dependancyAgent = lookup(each.value, "dependancyAgent", false)
   shutdownConfig  = lookup(each.value, "shutdownConfig", null)
+  lb              = lookup(each.value, "lb", null)
   tags            = lookup(each.value, "tags", null) == null ? var.tags : merge(var.tags, each.value.tags)
 }
 ```
@@ -115,7 +126,7 @@ linux_virtual_machine_clusters = {
 
 | Name | Version |
 |------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | ~> 5.0 |
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 5.0.1 |
 
 ## Modules
 
@@ -156,9 +167,9 @@ linux_virtual_machine_clusters = {
 | <a name="input_license_type"></a> [license\_type](#input\_license\_type) | (Optional) Specifies the BYOL Type for this Virtual Machine. Possible values are RHEL\_BYOS and SLES\_BYOS. | `string` | `null` | no |
 | <a name="input_os_managed_disk_type"></a> [os\_managed\_disk\_type](#input\_os\_managed\_disk\_type) | Specifies the type of OS Managed Disk which should be created. Possible values are Standard\_LRS or Premium\_LRS. | `string` | `"Standard_LRS"` | no |
 | <a name="input_plan"></a> [plan](#input\_plan) | An optional plan block | <pre>object({<br/>    name      = string<br/>    product   = string<br/>    publisher = string<br/>  })</pre> | `null` | no |
-| <a name="input_platform_fault_domain_count"></a> [platform\_fault\_domain\_count](#input\_platform\_fault\_domain\_count) | (Optional) Specifies the number of update domains that are used. Defaults to 5. Changing this forces a new resource to be created. | `string` | `"2"` | no |
+| <a name="input_platform_fault_domain_count"></a> [platform\_fault\_domain\_count](#input\_platform\_fault\_domain\_count) | (Optional) Specifies the number of update domains that are used. Defaults to 5. Changing this forces a new resource to be created. | `number` | `2` | no |
 | <a name="input_platform_managed"></a> [platform\_managed](#input\_platform\_managed) | (Optional) Specifies whether the availability set is managed or not. Possible values are true (to specify aligned) or false (to specify classic). | `bool` | `true` | no |
-| <a name="input_platform_update_domain_count"></a> [platform\_update\_domain\_count](#input\_platform\_update\_domain\_count) | (Optional) Specifies the number of fault domains that are used. Defaults to 3. Changing this forces a new resource to be created. | `string` | `"3"` | no |
+| <a name="input_platform_update_domain_count"></a> [platform\_update\_domain\_count](#input\_platform\_update\_domain\_count) | (Optional) Specifies the number of fault domains that are used. Defaults to 3. Changing this forces a new resource to be created. | `number` | `3` | no |
 | <a name="input_priority"></a> [priority](#input\_priority) | Specifies the priority of this Virtual Machine. Possible values are Regular and Spot. Defaults to Regular. Changing this forces a new resource to be created. | `string` | `"Regular"` | no |
 | <a name="input_public_ip"></a> [public\_ip](#input\_public\_ip) | Should the VM be assigned public IP(s). True or false. | `bool` | `false` | no |
 | <a name="input_public_ip_zones"></a> [public\_ip\_zones](#input\_public\_ip\_zones) | (Optional) A collection containing the availability zone(s) to allocate the Public IP(s) in. Changing this forces a new resource to be created. | `list(string)` | `null` | no |
@@ -184,4 +195,4 @@ linux_virtual_machine_clusters = {
 |------|-------------|
 | <a name="output_VMs"></a> [VMs](#output\_VMs) | The vm module object |
 | <a name="output_availability_set"></a> [availability\_set](#output\_availability\_set) | The availability\_set object |
-<!-- END_TF_DOCS -->
+

@@ -34,46 +34,6 @@ variable "use_nic_nsg" {
   default     = true
 }
 
-# variable "nic_ip_configuration_1" {
-#   description = "Defines how a private IP address is assigned. Options are Static or Dynamic. In case of Static also specifiy the desired privat IP address. See variable.tf file for example"
-#   type = object({
-#     private_ip_address            = list(string)
-#     private_ip_address_allocation = list(string)
-#   })
-#   default = {
-#     private_ip_address            = [null]
-#     private_ip_address_allocation = ["Dynamic"]
-#   }
-#   /*
-#     Example variable for a NIC with 2 staticly assigned IP and one dynamic:
-#     ```hcl
-#     nic_ip_configuration = {
-#       private_ip_address            = ["10.20.30.42","10.20.40.43",null]
-#       private_ip_address_allocation = ["Static","Static","Dynamic"]
-#     }
-#     ```
-#   */
-# }
-# variable "nic_ip_configuration_2" {
-#   description = "Defines how a private IP address is assigned. Options are Static or Dynamic. In case of Static also specifiy the desired privat IP address. See variable.tf file for example"
-#   type = object({
-#     private_ip_address            = list(string)
-#     private_ip_address_allocation = list(string)
-#   })
-#   default = {
-#     private_ip_address            = [null]
-#     private_ip_address_allocation = ["Dynamic"]
-#   }
-#   /*
-#     Example variable for a NIC with 2 staticly assigned IP and one dynamic:
-#     ```hcl
-#     nic_ip_configuration = {
-#       private_ip_address            = ["10.20.30.42","10.20.40.43",null]
-#       private_ip_address_allocation = ["Static","Static","Dynamic"]
-#     }
-#     ```
-#   */
-# }
 variable "cluster_members" {
   description = "Config of each cluster member"
   type        = any
@@ -214,14 +174,14 @@ variable "shutdownConfig" {
 
 variable "platform_fault_domain_count" {
   description = "(Optional) Specifies the number of update domains that are used. Defaults to 5. Changing this forces a new resource to be created."
-  type        = string
-  default     = "2"
+  type        = number
+  default     = 2
 }
 
 variable "platform_update_domain_count" {
   description = "(Optional) Specifies the number of fault domains that are used. Defaults to 3. Changing this forces a new resource to be created."
-  type        = string
-  default     = "3"
+  type        = number
+  default     = 3
 }
 
 variable "platform_managed" {

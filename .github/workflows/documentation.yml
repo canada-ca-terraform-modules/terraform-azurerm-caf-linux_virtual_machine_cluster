@@ -16,6 +16,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
       - name: Render terraform docs and push back to PR branch
+        # Guard against forks: a fork PR's workflow token has no write access
+        # to push back to the fork branch, so this step would fail outright.
+        if: github.event.pull_request.head.repo.full_name == github.repository
         uses: terraform-docs/gh-actions@v1.4.1
         with:
           working-dir: .

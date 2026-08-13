@@ -113,11 +113,14 @@ run "data_managed_disk_type_wired" {
   command = plan
   variables {
     data_managed_disk_type = "Premium_LRS"
+    # data_disks is a module-level (cluster-wide) variable, not a per-cluster-member
+    # key - every cluster_members entry shares the same data disk set, consistent
+    # with every other cluster-wide setting (vm_size, storage_image_reference, etc.).
+    data_disks = {
+      data1 = { disk_size_gb = 50, lun = 0 }
+    }
     cluster_members = {
       m1 = {
-        data_disks = {
-          data1 = { disk_size_gb = 50, lun = 0 }
-        }
         nic_ip_configuration = {
           private_ip_address            = [null]
           private_ip_address_allocation = ["Dynamic"]
@@ -131,4 +134,5 @@ run "data_managed_disk_type_wired" {
     error_message = "Plan must succeed with data_managed_disk_type wired through to the child module alongside data_disks"
   }
 }
+
 
