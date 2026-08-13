@@ -28,6 +28,13 @@ jobs:
       - name: Ensure trailing newline and commit if changed
         if: github.event.pull_request.head.repo.full_name == github.repository
         run: |
+          # terraform-docs/gh-actions runs as a Docker action (root inside the
+          # container) and leaves .git owned by root in the mounted workspace,
+          # which then blocks this step's own (non-root) git commands with
+          # "insufficient permission for adding an object to repository
+          # database .git/objects" - reclaim ownership before touching git.
+          sudo chown -R "$(id -u):$(id -g)" .
+
           # terraform-docs consistently omits the trailing newline on README.md -
           # restore it here so the commit never violates the repo's trailing-newline
           # convention (avoids an endless fix-commit/strip-commit loop on every PR push).
