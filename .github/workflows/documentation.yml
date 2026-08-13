@@ -1,0 +1,24 @@
+# Auto-generates README.md via terraform-docs on every PR.
+# This module doesn't use inject markers (no <!-- BEGIN_TF_DOCS --> in README.md) -
+# terraform-docs fully replaces README.md, using doc.md as the static header
+# (see .terraform-docs.yml: header-from: doc.md), matching generate-doc.md's
+# documented manual workflow.
+name: Generate terraform docs
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main, master]
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Render terraform docs and push back to PR branch
+        uses: terraform-docs/gh-actions@v1.4.1
+        with:
+          working-dir: .
+          output-file: README.md
+          output-method: replace
+          git-push: "true"

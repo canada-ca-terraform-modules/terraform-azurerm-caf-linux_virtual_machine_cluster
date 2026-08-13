@@ -65,3 +65,41 @@ module "linux_VMs_ha" {
   tags            = lookup(each.value, "tags", null) == null ? var.tags : merge(var.tags, each.value.tags)
 }
 ```
+
+## ESLZ Usage
+
+Copy [ESLZ/linux_virtual_machine_cluster.tf](./ESLZ/linux_virtual_machine_cluster.tf) into an ESLZ L2 blueprint and populate `linux_virtual_machine_cluster.tfvars` - see [ESLZ/linux_virtual_machine_cluster.tfvars](./ESLZ/linux_virtual_machine_cluster.tfvars) for a full example, including every supported optional key.
+
+### ESLZ module block (`ESLZ/linux_virtual_machine_cluster.tf`)
+
+```hcl
+module "linux_virtual_machine_cluster" {
+  source          = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-linux_virtual_machine_cluster?ref=v2.0.0"
+  for_each        = var.linux_virtual_machine_clusters
+  resource_groups = var.resource_groups
+  subnets         = var.subnets
+  tags            = var.tags
+  # ... see ESLZ/linux_virtual_machine_cluster.tf for every argument wired through
+}
+```
+
+### ESLZ tfvars pattern (`ESLZ/linux_virtual_machine_cluster.tfvars`)
+
+```hcl
+linux_virtual_machine_clusters = {
+  SRV-APPHA1 = {
+    env                = "Prod"
+    userDefinedString  = "apphacluster"
+    resource_group_key = "Project"
+    subnet_key         = "app"
+    admin_username     = "adminuser"
+    vm_size            = "Standard_D2s_v5"
+
+    cluster_members = {
+      node1 = { nic_ip_configuration = { private_ip_address = [null], private_ip_address_allocation = ["Dynamic"] } }
+      node2 = { nic_ip_configuration = { private_ip_address = [null], private_ip_address_allocation = ["Dynamic"] } }
+    }
+  }
+}
+```
+
