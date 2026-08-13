@@ -11,7 +11,7 @@ linux_virtual_machine_clusters = {
     subnet_key         = "app"
     admin_username     = "adminuser"
     # admin_password: sensitive - supply via TF_VAR_linux_virtual_machine_clusters or a secrets store
-    vm_size            = "Standard_D2s_v5"
+    vm_size = "Standard_D2s_v5"
 
     cluster_members = {
       node1 = {

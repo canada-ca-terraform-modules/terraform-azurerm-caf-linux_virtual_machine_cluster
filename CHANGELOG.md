@@ -27,6 +27,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `tags` default value had a duplicate `"exampleTag1"` map key (second entry silently overwrote the first); corrected to `"exampleTag2"`.
 - `data_managed_disk_type` variable was declared but never wired to the child VM module (silently had no effect); now passed through as `data_managed_disk_type` on the `VMs` module block.
+- `admin_password` variable marked `sensitive = true` (was previously plaintext-visible in plan/apply output).
+- `azurerm_lb_rule`'s `floating_ip_enabled`/`tcp_reset_enabled` now read via `try(..., null)` instead of a bare `each.value.*` reference, so a caller's `lb.rules.*` entry omitting either key no longer crashes the plan.
+- Removed a hardcoded example password (`"ChangeMe123!"`) from `ESLZ/linux_virtual_machine_cluster.tfvars`, replaced with a comment directing callers to supply it via `TF_VAR_*` or a secrets store.
 
 ### Notes
 
