@@ -1,3 +1,4 @@
+<!-- BEGIN_TF_DOCS -->
 # Terraform Basic Linux Virtual Machine HA
 
 ## Introduction
@@ -114,7 +115,7 @@ linux_virtual_machine_clusters = {
 
 | Name | Version |
 |------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 5.0.1 |
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | ~> 5.0 |
 
 ## Modules
 
@@ -183,3 +184,4 @@ linux_virtual_machine_clusters = {
 |------|-------------|
 | <a name="output_VMs"></a> [VMs](#output\_VMs) | The vm module object |
 | <a name="output_availability_set"></a> [availability\_set](#output\_availability\_set) | The availability\_set object |
+<!-- END_TF_DOCS -->
