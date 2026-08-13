@@ -15,13 +15,31 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-      - name: Render terraform docs and push back to PR branch
+      - name: Render terraform docs
         # Guard against forks: a fork PR's workflow token has no write access
-        # to push back to the fork branch, so this step would fail outright.
+        # to push back to the fork branch, so committing would fail outright.
         if: github.event.pull_request.head.repo.full_name == github.repository
         uses: terraform-docs/gh-actions@v1.4.1
         with:
           working-dir: .
           output-file: README.md
           output-method: replace
-          git-push: "true"
+          git-push: "false"
+      - name: Ensure trailing newline and commit if changed
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          # terraform-docs consistently omits the trailing newline on README.md -
+          # restore it here so the commit never violates the repo's trailing-newline
+          # convention (avoids an endless fix-commit/strip-commit loop on every PR push).
+          if [ -n "$(tail -c1 README.md)" ]; then
+            printf '\n' >> README.md
+          fi
+          if git diff --quiet -- README.md; then
+            echo "No documentation changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "terraform-docs: automated action"
+          git push
