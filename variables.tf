@@ -3,7 +3,7 @@ variable "tags" {
   type        = map(string)
   default = {
     "exampleTag1" = "SomeValue1"
-    "exampleTag1" = "SomeValue2"
+    "exampleTag2" = "SomeValue2"
   }
 }
 variable "env" {
@@ -30,53 +30,13 @@ variable "subnet" {
 
 variable "use_nic_nsg" {
   description = "Should an NSG be created for the VM nic"
-  type = bool
-  default = true
+  type        = bool
+  default     = true
 }
 
-# variable "nic_ip_configuration_1" {
-#   description = "Defines how a private IP address is assigned. Options are Static or Dynamic. In case of Static also specifiy the desired privat IP address. See variable.tf file for example"
-#   type = object({
-#     private_ip_address            = list(string)
-#     private_ip_address_allocation = list(string)
-#   })
-#   default = {
-#     private_ip_address            = [null]
-#     private_ip_address_allocation = ["Dynamic"]
-#   }
-#   /*
-#     Example variable for a NIC with 2 staticly assigned IP and one dynamic:
-#     ```hcl
-#     nic_ip_configuration = {
-#       private_ip_address            = ["10.20.30.42","10.20.40.43",null]
-#       private_ip_address_allocation = ["Static","Static","Dynamic"]
-#     }
-#     ```
-#   */
-# }
-# variable "nic_ip_configuration_2" {
-#   description = "Defines how a private IP address is assigned. Options are Static or Dynamic. In case of Static also specifiy the desired privat IP address. See variable.tf file for example"
-#   type = object({
-#     private_ip_address            = list(string)
-#     private_ip_address_allocation = list(string)
-#   })
-#   default = {
-#     private_ip_address            = [null]
-#     private_ip_address_allocation = ["Dynamic"]
-#   }
-#   /*
-#     Example variable for a NIC with 2 staticly assigned IP and one dynamic:
-#     ```hcl
-#     nic_ip_configuration = {
-#       private_ip_address            = ["10.20.30.42","10.20.40.43",null]
-#       private_ip_address_allocation = ["Static","Static","Dynamic"]
-#     }
-#     ```
-#   */
-# }
 variable "cluster_members" {
   description = "Config of each cluster member"
-  type = any
+  type        = any
 }
 variable "public_ip" {
   description = "Should the VM be assigned public IP(s). True or false."
@@ -102,6 +62,7 @@ variable "admin_password" {
   description = "Password of the VM admin account"
   type        = string
   default     = null
+  sensitive   = true
 }
 variable "vm_size" {
   description = "Specifies the size of the Virtual Machine. Eg: Standard_F4"
@@ -213,26 +174,26 @@ variable "shutdownConfig" {
 
 variable "platform_fault_domain_count" {
   description = "(Optional) Specifies the number of update domains that are used. Defaults to 5. Changing this forces a new resource to be created."
-  type = string
-  default = "2"
+  type        = number
+  default     = 2
 }
 
 variable "platform_update_domain_count" {
   description = "(Optional) Specifies the number of fault domains that are used. Defaults to 3. Changing this forces a new resource to be created."
-  type = string
-  default = "3"
+  type        = number
+  default     = 3
 }
 
 variable "platform_managed" {
   description = "(Optional) Specifies whether the availability set is managed or not. Possible values are true (to specify aligned) or false (to specify classic)."
-  type = bool
-  default = true
+  type        = bool
+  default     = true
 }
-  
+
 variable "boot_diagnostic" {
   description = "(Optional)"
-  type = bool
-  default = false
+  type        = bool
+  default     = false
 }
 
 variable "lb" {
@@ -249,6 +210,46 @@ variable "cluster_patch_assessment_mode" {
 
 variable "cluster_patch_mode" {
   description = "(Optional) Specifies the mode of in-guest patching to this Windows Virtual Machine. Possible values are Manual, AutomaticByOS and AutomaticByPlatform. Defaults to AutomaticByOS."
+  type        = string
+  default     = null
+}
+
+variable "identity" {
+  description = "(Optional) An identity block. Object with 'type' (SystemAssigned, UserAssigned or 'SystemAssigned, UserAssigned') and optional 'identity_ids' (list of User Assigned Managed Identity IDs)."
+  type = object({
+    type         = string
+    identity_ids = optional(list(string))
+  })
+  default = null
+}
+
+variable "secure_boot_enabled" {
+  description = "(Optional) Specifies whether secure boot should be enabled on the virtual machine. Changing this forces a new resource to be created."
+  type        = bool
+  default     = null
+}
+
+variable "vtpm_enabled" {
+  description = "(Optional) Specifies whether vTPM should be enabled on the virtual machine. Changing this forces a new resource to be created."
+  type        = bool
+  default     = null
+}
+
+variable "user_data" {
+  description = "(Optional) The Base64-Encoded User Data which should be used for this Virtual Machine."
+  type        = string
+  default     = null
+}
+
+variable "public_ip_zones" {
+  description = "(Optional) A collection containing the availability zone(s) to allocate the Public IP(s) in. Changing this forces a new resource to be created."
+  type        = list(string)
+  default     = null
+}
+
+# --- Pattern 12: optional override for the auto-generated availability set name ---
+variable "as_name" {
+  description = "(Optional) Override the auto-generated availability set name. Defaults to '{env}{serverType}-{userDefinedString}-as'."
   type        = string
   default     = null
 }

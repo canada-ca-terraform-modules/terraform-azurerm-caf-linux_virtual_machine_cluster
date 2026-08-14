@@ -25,23 +25,33 @@ Optional (depending on options configured):
 ## Usage Example
 
 ```hcl
-module "linux_VMs_ha" {
-  source   = "./modules/terraform-azurerm-caf-linux_virtual_machine_ha"
-  for_each = local.deployListLinuxHA
+module "linux_VMs_cluster" {
+  source   = "./modules/terraform-azurerm-caf-linux_virtual_machine_cluster"
+  for_each = local.deployListLinuxCluster
 
   env               = var.env
   serverType        = each.value.serverType
   userDefinedString = each.value.userDefinedString
   resource_group    = local.resource_groups_L2[each.value.resource_group]
   subnet            = local.subnets[each.value.subnet]
-  nic_ip_configuration_1 = {
-    private_ip_address            = [lookup(each.value, "private_ip_address_host_1", "Dynamic") == "Dynamic" ? null : each.value.private_ip_address_host_1] # Test if private ip host is provided. If yes assign value. If no set to null
-    private_ip_address_allocation = [lookup(each.value, "private_ip_address_host_1", "Dynamic") == "Dynamic" ? "Dynamic" : "Static"]                        # Test if private ip host is provided. If yes assign Static. If no set to Dynamic
+
+  # One entry per VM in the cluster - each member gets its own NIC IP configuration
+  # and may optionally override its own auto-generated resource names (Pattern 12).
+  cluster_members = {
+    node1 = {
+      nic_ip_configuration = {
+        private_ip_address            = [lookup(each.value, "private_ip_address_node1", "Dynamic") == "Dynamic" ? null : each.value.private_ip_address_node1]
+        private_ip_address_allocation = [lookup(each.value, "private_ip_address_node1", "Dynamic") == "Dynamic" ? "Dynamic" : "Static"]
+      }
+    }
+    node2 = {
+      nic_ip_configuration = {
+        private_ip_address            = [lookup(each.value, "private_ip_address_node2", "Dynamic") == "Dynamic" ? null : each.value.private_ip_address_node2]
+        private_ip_address_allocation = [lookup(each.value, "private_ip_address_node2", "Dynamic") == "Dynamic" ? "Dynamic" : "Static"]
+      }
+    }
   }
-  nic_ip_configuration_2 = {
-    private_ip_address            = [lookup(each.value, "private_ip_address_host_2", "Dynamic") == "Dynamic" ? null : each.value.private_ip_address_host_2] # Test if private ip host is provided. If yes assign value. If no set to null
-    private_ip_address_allocation = [lookup(each.value, "private_ip_address_host_2", "Dynamic") == "Dynamic" ? "Dynamic" : "Static"]                        # Test if private ip host is provided. If yes assign Static. If no set to Dynamic
-  }
+
   public_ip               = lookup(each.value, "public_ip", false)
   priority                = lookup(each.value, "priority", "Regular")
   license_type            = lookup(each.value, "license_type", null)
@@ -51,6 +61,7 @@ module "linux_VMs_ha" {
   storage_image_reference = lookup(each.value, "storage_image_reference", local.linux_storage_image_reference_ha)
   storage_os_disk         = lookup(each.value, "storage_os_disk", null)
   os_managed_disk_type    = lookup(each.value, "os_managed_disk_type", null)
+  data_managed_disk_type  = lookup(each.value, "data_managed_disk_type", null)
   plan                    = lookup(each.value, "plan", null)
   custom_data             = lookup(each.value, "custom_data", false) != false ? base64encode(file(each.value.custom_data)) : null
   ultra_ssd_enabled       = lookup(each.value, "ultra_ssd_enabled", false)
@@ -62,6 +73,45 @@ module "linux_VMs_ha" {
   } : null
   dependancyAgent = lookup(each.value, "dependancyAgent", false)
   shutdownConfig  = lookup(each.value, "shutdownConfig", null)
+  lb              = lookup(each.value, "lb", null)
   tags            = lookup(each.value, "tags", null) == null ? var.tags : merge(var.tags, each.value.tags)
 }
 ```
+
+## ESLZ Usage
+
+Copy [ESLZ/linux_virtual_machine_cluster.tf](./ESLZ/linux_virtual_machine_cluster.tf) into an ESLZ L2 blueprint and populate `linux_virtual_machine_cluster.tfvars` - see [ESLZ/linux_virtual_machine_cluster.tfvars](./ESLZ/linux_virtual_machine_cluster.tfvars) for a full example, including every supported optional key.
+
+### ESLZ module block (`ESLZ/linux_virtual_machine_cluster.tf`)
+
+```hcl
+module "linux_virtual_machine_cluster" {
+  source          = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-linux_virtual_machine_cluster?ref=v2.0.0"
+  for_each        = var.linux_virtual_machine_clusters
+  resource_groups = var.resource_groups
+  subnets         = var.subnets
+  tags            = var.tags
+  # ... see ESLZ/linux_virtual_machine_cluster.tf for every argument wired through
+}
+```
+
+### ESLZ tfvars pattern (`ESLZ/linux_virtual_machine_cluster.tfvars`)
+
+```hcl
+linux_virtual_machine_clusters = {
+  SRV-APPHA1 = {
+    env                = "Prod"
+    userDefinedString  = "apphacluster"
+    resource_group_key = "Project"
+    subnet_key         = "app"
+    admin_username     = "adminuser"
+    vm_size            = "Standard_D2s_v5"
+
+    cluster_members = {
+      node1 = { nic_ip_configuration = { private_ip_address = [null], private_ip_address_allocation = ["Dynamic"] } }
+      node2 = { nic_ip_configuration = { private_ip_address = [null], private_ip_address_allocation = ["Dynamic"] } }
+    }
+  }
+}
+```
+

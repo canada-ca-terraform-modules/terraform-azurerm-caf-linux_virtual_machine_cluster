@@ -1,0 +1,55 @@
+# Auto-generates README.md via terraform-docs on every PR.
+# This module doesn't use inject markers (no <!-- BEGIN_TF_DOCS --> in README.md) -
+# terraform-docs fully replaces README.md, using doc.md as the static header
+# (see .terraform-docs.yml: header-from: doc.md), matching generate-doc.md's
+# documented manual workflow.
+name: Generate terraform docs
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main, master]
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Render terraform docs
+        # Guard against forks: a fork PR's workflow token has no write access
+        # to push back to the fork branch, so committing would fail outright.
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: terraform-docs/gh-actions@v1.4.1
+        with:
+          working-dir: .
+          output-file: README.md
+          output-method: replace
+          git-push: "false"
+      - name: Ensure trailing newline and commit if changed
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          # terraform-docs/gh-actions runs as a Docker action (root inside the
+          # container) and leaves .git owned by root in the mounted workspace,
+          # which then blocks this step's own (non-root) git commands with
+          # "insufficient permission for adding an object to repository
+          # database .git/objects" - reclaim ownership before touching git.
+          sudo chown -R "$(id -u):$(id -g)" .
+
+          # terraform-docs consistently omits the trailing newline on README.md -
+          # restore it here so the commit never violates the repo's trailing-newline
+          # convention (avoids an endless fix-commit/strip-commit loop on every PR push).
+          if [ -n "$(tail -c1 README.md)" ]; then
+            printf '\n' >> README.md
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          # Compare the STAGED diff, not the working-tree diff - .gitattributes'
+          # `eol=lf` normalization can make a working-tree-vs-index diff look
+          # non-empty even when `git add` ends up staging no real change.
+          if git diff --cached --quiet -- README.md; then
+            echo "No documentation changes to commit."
+            exit 0
+          fi
+          git commit -m "terraform-docs: automated action"
+          git push
