@@ -27,13 +27,13 @@ linux_virtual_machine_cluster = {
   }
 
   cluster_members = {
-    node1 = {
+    vm1 = {
       nic_ip_configuration = {
         private_ip_address            = [null]
         private_ip_address_allocation = ["Dynamic"]
       }
     }
-    node2 = {
+    vm2 = {
       nic_ip_configuration = {
         private_ip_address            = [null]
         private_ip_address_allocation = ["Dynamic"]
