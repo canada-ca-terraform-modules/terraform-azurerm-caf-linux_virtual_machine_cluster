@@ -1,4 +1,5 @@
 terraform {
+  # Touch to satisfy live-test.yml's pull_request path filter (test/live/** or *.tf) for this PR.
   required_version = ">= 1.9"
   required_providers {
     azurerm = {
